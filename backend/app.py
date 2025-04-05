@@ -18,11 +18,14 @@ from celery.schedules import crontab
 # from config import CELERY_BROKER_URL, CELERY_RESULT_BACKEND 
 from flask_mail import Mail, Message
 from flask_apscheduler import APScheduler
-from flask_caching import Cache
+from flask_caching import Cache 
 from celery import shared_task
-from flask_restx import Api, Resource
-from flasgger import Swagger
+from flask_swagger_ui import get_swaggerui_blueprint
+from flask import send_from_directory    
+from datetime import datetime
 
+SWAGGER_URL = "/swagger"
+API_URL = "/static/swagger.json"
 
 
 
@@ -35,8 +38,8 @@ ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg',"docx"}  # Define allowed file
 access_token = None
 
 app = Flask(__name__)
-api = Api(app, version='1.0', title='Household Services',  description='REST APIs')
-ns = api.namespace('todos', description='TODO operations')
+# api = Api(app, version='1.0', title='Household Services',  description='REST APIs')
+# ns = api.namespace('todos', description='TODO operations')
 
 app.config.from_object(Config)
 db.init_app(app)
@@ -69,10 +72,11 @@ app.config["SWAGGER"] = {
     "description": "API documentation for the Home Services App",
     "version": "1.0.0"
 }
-swagger = Swagger(app) 
+# swagger = Swagger(app) 
 
 cache = Cache(app)
-
+swaggerui_blueprint = get_swaggerui_blueprint(SWAGGER_URL, API_URL)
+app.register_blueprint(swaggerui_blueprint, url_prefix=SWAGGER_URL)
 
 
 if not os.path.exists(UPLOAD_FOLDER):
@@ -108,7 +112,7 @@ celery = make_celery(app)
 
 scheduler = APScheduler()
 
-@scheduler.task("cron", hour=18, minute=0)  # Runs every day at 6:00 PM
+@scheduler.task("cron", hour=18, minute=0)  
 def schedule_daily_reminders():
     send_daily_reminders.delay()
 
@@ -120,6 +124,31 @@ scheduler.start()
 def send_daily_reminders():
     print("Sending daily reminders to service professionals...")
     # Your logic to fetch pending requests and send alerts
+
+
+
+@app.route("/", defaults={"path": ""})
+@app.route("/<path:path>")
+def serve_vue(path):
+    if path and os.path.exists(os.path.join("static", path)):
+        return send_from_directory("static", path)
+    return send_from_directory("static", "index.html")
+
+@app.route("/send_mail_with_timestamp")
+def send_mail_with_timestamp():
+    now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Format: YYYY-MM-DD HH:MM:SS
+    msg = Message(
+        "Timestamped Email",
+        sender="your_email@gmail.com",
+        recipients=["recipient@example.com"]
+    )
+    msg.body = f"Hello,\n\nThis email was sent at {now}.\n\nBest regards!"
+    
+    try:
+        mail.send(msg)
+        return "Email with timestamp sent successfully!"
+    except Exception as e:
+        return f"Error: {str(e)}"
 
 
 @app.route("/send_mail")
@@ -289,7 +318,7 @@ def trigger_csv_export():
 with app.app_context():
     db.create_all()
     if not Users.query.filter_by(user_id='1').first():
-        user = Users(username='admin', password=bcrypt.generate_password_hash('admin').decode('utf-8'), role='A', email='admin@gmail.com')
+        user = Users(username='admin', password=bcrypt.generate_password_hash('admin').decode('utf-8'), role='A', email='admin@gmail.com',address="admin",phone=999999999)
         db.session.add(user)
         db.session.commit()
     if not Users.query.filter_by(user_id='2').first():
@@ -333,7 +362,7 @@ with app.app_context():
         db.session.add(review)
         db.session.commit()
 
-@app.route("/", methods=['GET', 'POST'])
+@app.route("/login", methods=['GET', 'POST'])
 def landing():
     """Login"""
     global access_token
@@ -577,7 +606,7 @@ def get_professional_documents(professional_id):
 
 
 @app.route("/get_all_customers", methods=["GET"])
-@cache.cached(timeout=300)
+@cache.cached(timeout=5)
 @jwt_required()
 def get_all_customers():
 
@@ -607,7 +636,7 @@ def get_all_customers():
 
 
 @app.route('/get_all_services', methods=['GET'])
-@cache.cached(timeout=300)
+@cache.cached(timeout=5)
 def get_all_services():
     try:
         services = Service.query.all()
@@ -662,7 +691,7 @@ def create_service():
     return jsonify({"message": "Service created successfully", "service_id": new_service.service_id}), 201
 
 @app.route("/get_all_professionals", methods=["GET"])
-@cache.cached(timeout=300)
+@cache.cached(timeout=5)
 def get_all_professionals():
     professionals = Professional.query.all()
 
@@ -774,7 +803,7 @@ def add_service():
 
 
 @app.route('/get_all_service_requests', methods=['GET'])
-@cache.cached(timeout=300)
+@cache.cached(timeout=5)
 def get_all_service_requests():
     try:
         requests = Request.query.all()
@@ -922,11 +951,16 @@ def reject_request(request_id):
 def conclude_request(request_id):
     user_id = get_jwt_identity()
     service_request = Request.query.filter_by(request_id=request_id, user_id=user_id).first()
-
+    print("service request",service_request.status)
+    
+    if service_request.status =="Accepted":
+        service_request.status = "Concluded"
+        db.session.commit()
+        return jsonify({"message": "Request has been concluded successfully!"})
     if not service_request:
         return jsonify({"error": "Service request not found or unauthorized"}), 404
 
-    if service_request.status != "Pending":
+    if service_request.status != "Pending" or service_request.status != "Accepted":
         return jsonify({"error": "Only pending requests can be concluded"}), 400
 
     service_request.status = "Concluded"
@@ -989,7 +1023,7 @@ def abandon_request(request_id):
         return jsonify({"error": str(e)}), 500
 
 @app.route('/past-service-requests-customers', methods=['GET'])
-@cache.cached(timeout=300)
+@cache.cached(timeout=5)
 @jwt_required()
 def get_past_service_requests_customers():
     try:
@@ -1014,6 +1048,8 @@ def get_past_service_requests_customers():
             }
             for req in requests
         ]
+
+        # print("\npast services\n",jsonify(requests))
         return jsonify(request_list), 200
     except Exception as e:
         return jsonify({"error": str(e)}), 500
@@ -1026,9 +1062,12 @@ def create_service_request():
     service_type = data.get("service_type") 
     additional_details = data.get("additional_details", "")
 
+
     user = Users.query.filter_by(user_id=user_id).first()
-    if not user or user.role != "C" or user.blocked:
+    print("User",user.username)  
+    if not user or user.role != "C":
         return jsonify({"error": "Customer not found"}), 404
+    
 
     if additional_details is None:
         additional_details = ""

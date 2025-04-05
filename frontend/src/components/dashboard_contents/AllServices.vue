@@ -1,6 +1,5 @@
 <template>
     <div class="all-services">
-      <h2>All Services</h2>
   
       <!-- Services Table -->
       <div class="table-section">
@@ -171,66 +170,51 @@
   
   /* Modal Styling */
   .modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0, 0, 0, 0.5);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-  }
-  
-  .modal {
-    background: white;
-    padding: 20px;
-    border-radius: 8px;
-    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
-    width: 300px;
-  }
-  
-  .modal h3 {
-    margin-bottom: 15px;
-  }
-  
-  .modal label {
-    display: block;
-    margin: 10px 0 5px;
-  }
-  
-  .modal input {
-    width: 100%;
-    padding: 8px;
-    margin-bottom: 10px;
-    border: 1px solid #ddd;
-    border-radius: 5px;
-  }
-  
-  .modal-actions {
-    display: flex;
-    justify-content: space-between;
-  }
-  
-  .modal-actions button {
-    padding: 8px 12px;
-    border: none;
-    cursor: pointer;
-    border-radius: 5px;
-  }
-  
-  .modal-actions button:first-child {
-    background-color: #007bff;
-    color: white;
-  }
-  
-  .modal-actions button:last-child {
-    background-color: #dc3545;
-    color: white;
-  }
-  
-  .modal-actions button:hover {
-    opacity: 0.8;
-  }
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000; /* Ensure it's above everything */
+}
+
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  text-align: center;
+  width: 400px;
+  z-index: 1001; /* Keep content above overlay */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+}
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
+  padding: 8px;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn-submit {
+  background-color: #42b983;
+  color: white;
+}
+
+.btn-cancel {
+  background-color: #ff4d4d;
+  color: white;
+}
   </style>
-  

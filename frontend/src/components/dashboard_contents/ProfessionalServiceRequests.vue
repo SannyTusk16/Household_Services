@@ -7,6 +7,7 @@
         <div style="flex: 1;">Service Request ID</div>
         <div style="flex: 1;">Service Name</div>
         <div style="flex: 1;">Service Date</div>
+        <div style="flex: 1;">Customer ID</div>
         <div style="flex: 1;">Service Time</div>
         <div style="flex: 1;">Actions</div>
 
@@ -27,6 +28,7 @@
         <div style="flex: 1;">{{ request.request_id }}</div>
         <div style="flex: 1;">{{ request.service_type }}</div>
         <div style="flex: 1;"> {{ formatDate(request.date_created) }} </div>
+        <div style="flex: 1;">{{ request.user_id }}</div>
         <div style="flex: 1;"> {{ formatTime(request.date_created) }} </div>
         <div style="flex: 1; display: flex; gap: 10px;">
           <button 
@@ -200,6 +202,7 @@ export default {
         console.log("Pending Requests:", JSON.stringify(this.serviceRequests, null, 2));
         console.log("Finished Requests:", JSON.stringify(this.pastServiceRequests,null,2));
         console.log("History Requests (Accepted):", JSON.stringify(this.historyServiceRequests, null, 2));
+        console.log("Accepted Requests (Accepted):", JSON.stringify(this.acceptedServiceRequests, null, 2));
 
         this.loading = false;
       } catch (error) {

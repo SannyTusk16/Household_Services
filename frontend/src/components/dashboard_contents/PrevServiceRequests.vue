@@ -2,7 +2,7 @@
   <div class="service-requests-container">
     <h1>Previous Service Requests</h1>
 
-    <div v-if="serviceRequests.length > 0" class="table-container">
+    <div v-if="serviceRequests.length > 0" class="table-wrapper">
       <table>
         <thead>
           <tr>
@@ -20,10 +20,16 @@
             <td>{{ serviceRequest.professional_id }}</td>
             <td :class="getStatusClass(serviceRequest.status)"> {{ serviceRequest.status }} </td>
             <td>
-              <button v-if="serviceRequest.status === 'Pending'" @click="concludeRequest(serviceRequest.id)">
+              <button 
+                v-if="serviceRequest.status === 'Pending' || serviceRequest.status === 'Accepted'"
+                class="btn btn-conclude"
+                @click="concludeRequest(serviceRequest.id)">
                 Conclude
               </button>
-              <button v-if="serviceRequest.status === 'Finished'" @click="openReviewModal(serviceRequest.professional_id)">
+              <button 
+                v-if="serviceRequest.status === 'Finished' || serviceRequest.status === 'Abandoned'"
+                class="btn btn-review"
+                @click="openReviewModal(serviceRequest.professional_id)">
                 Give Review
               </button>
             </td>
@@ -32,12 +38,12 @@
       </table>
     </div>
 
-    <div v-else>
+    <div v-else class="no-requests">
       <p>No previous service requests found.</p>
     </div>
 
     <!-- Review Modal -->
-    <div v-if="showModal" class="modal">
+    <div v-if="showModal" class="modal-overlay">
       <div class="modal-content">
         <h2>Give Review</h2>
         <label for="rating">Rating (1-5):</label>
@@ -46,12 +52,15 @@
         <label for="review">Review:</label>
         <textarea id="review" v-model="reviewData.review"></textarea>
 
-        <button @click="submitReview">Submit</button>
-        <button @click="closeModal">Cancel</button>
+        <div class="modal-actions">
+          <button class="btn btn-submit" @click="submitReview">Submit</button>
+          <button class="btn btn-cancel" @click="closeModal">Cancel</button>
+        </div>
       </div>
     </div>
   </div>
 </template>
+
 
 <script>
 import axios from "axios";
@@ -99,6 +108,9 @@ export default {
           headers: { Authorization: `Bearer ${token}` }
         });
 
+        console.log("past services:",JSON.stringify(response.data, null, 2));
+        
+
         if (Array.isArray(response.data)) {
           this.serviceRequests = response.data;
         } else {
@@ -133,10 +145,12 @@ export default {
     openReviewModal(professionalId) {
       this.reviewData.professional_id = professionalId;
       this.showModal = true;
+      document.body.classList.add("modal-open"); // Prevent scrolling
     },
+
     closeModal() {
       this.showModal = false;
-      this.reviewData = { professional_id: null, rating: "", review: "" };
+      document.body.classList.remove("modal-open"); // Re-enable scrolling
     },
     async submitReview() {
       try {
@@ -144,6 +158,12 @@ export default {
 
         if (!token) {
           console.error("Missing token");
+          return;
+        }
+
+        if (!this.reviewData.professional_id) {
+          console.error("Missing professional_id for review");
+          alert("Error: Missing professional ID.");
           return;
         }
 
@@ -168,17 +188,26 @@ export default {
 
 <style scoped>
 .service-requests-container {
-  max-width: 600px;
+  max-width: 700px;
   margin: auto;
   padding: 20px;
   text-align: center;
+  background: white;
+  border-radius: 10px;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
 }
 
-.table-container {
-  max-height: 150px; /* Allows scrolling */
+h1 {
+  margin-bottom: 20px;
+  color: #333;
+}
+
+/* Table Container */
+.table-wrapper {
+  max-height: 250px; /* Allows scrolling */
   overflow-y: auto;
-  border: 1px solid #ddd;
   border-radius: 5px;
+  border: 1px solid #ddd;
 }
 
 table {
@@ -187,14 +216,15 @@ table {
 }
 
 th, td {
-  padding: 8px;
-  text-align: left;
+  padding: 12px;
+  text-align: center;
   border-bottom: 1px solid #ddd;
 }
 
 th {
-  background-color: #f8f8f8;
-  position: sticky;
+  background-color: #42b983;
+  color: white;
+  position: relative;
   top: 0;
   z-index: 1;
 }
@@ -203,16 +233,33 @@ tbody tr:hover {
   background-color: #f1f1f1;
 }
 
-/* Status Colors */
-.status-pending { color: #ff9800; font-weight: bold; }
-.status-concluded { color: #2196F3; font-weight: bold; }
-.status-finished { color: #4caf50; font-weight: bold; }
-.status-rejected, .status-abandoned { color: #f44336; font-weight: bold; }
-.status-default { color: #525252; }
+/* Buttons */
+.btn {
+  padding: 8px 12px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+}
 
-/* Modal Styles */
-.modal {
-  position: fixed;
+.btn-conclude {
+  background-color: #42b983;
+  color: white;
+}
+
+.btn-review {
+  background-color: #ffa500;
+  color: white;
+}
+
+.btn:hover {
+  opacity: 0.8;
+}
+
+/* Modal Styling */
+/* Modal Overlay */
+.modal-overlay {
+  position: fixed; /* Ensure it stays in place */
   top: 0;
   left: 0;
   width: 100%;
@@ -221,18 +268,57 @@ tbody tr:hover {
   display: flex;
   align-items: center;
   justify-content: center;
+  z-index: 1050; /* Ensure it's above all UI elements */
 }
 
+/* Modal Content */
 .modal-content {
   background: white;
   padding: 20px;
   border-radius: 10px;
   text-align: center;
+  width: 400px;
+  max-width: 90%;
+  z-index: 1051; /* Keep it above the overlay */
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.2);
+  position: relative;
 }
 
-button {
-  margin: 10px;
+
+.modal-content input,
+.modal-content textarea {
+  width: 100%;
   padding: 8px;
-  cursor: pointer;
+  margin-top: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #ccc;
+  border-radius: 5px;
 }
+
+.modal-actions {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 10px;
+}
+
+.btn-submit {
+  background-color: #42b983;
+  color: white;
+}
+
+.btn-cancel {
+  background-color: #ff4d4d;
+  color: white;
+}
+
+/* No Requests */
+.no-requests {
+  color: #777;
+  font-size: 16px;
+  margin-top: 20px;
+}
+body.modal-open {
+  overflow: hidden;
+}
+
 </style>

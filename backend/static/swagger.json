@@ -1,0 +1,363 @@
+{
+    "swagger": "2.0",
+    "info": {
+        "title": "Home Services API",
+        "description": "API documentation for the Home Services App",
+        "version": "1.0.0"
+    },
+    "host": "localhost:5000",
+    "basePath": "/",
+    "schemes": [
+        "http"
+    ],
+    "paths": {
+        "/export-closed-requests": {
+            "post": {
+                "summary": "Endpoint for /export-closed-requests",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/login": {
+            "get": {
+                "summary": "Endpoint for /",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            },
+            "post": {
+                "summary": "Endpoint for /",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/register": {
+            "post": {
+                "summary": "Endpoint for /register",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/current_user": {
+            "get": {
+                "summary": "Endpoint for /current_user",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/upload_document": {
+            "post": {
+                "summary": "Endpoint for /upload_document",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_document/<int:document_id>": {
+            "get": {
+                "summary": "Endpoint for /get_document/<int:document_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/download_document/<int:document_id>": {
+            "get": {
+                "summary": "Endpoint for /download_document/<int:document_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_professional_documents/<int:professional_id>": {
+            "get": {
+                "summary": "Endpoint for /get_professional_documents/<int:professional_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_all_customers": {
+            "get": {
+                "summary": "Endpoint for /get_all_customers",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_all_services": {
+            "get": {
+                "summary": "Endpoint for /get_all_services",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_service/<int:service_id>": {
+            "get": {
+                "summary": "Endpoint for /get_service/<int:service_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/create_service": {
+            "post": {
+                "summary": "Endpoint for /create_service",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_all_professionals": {
+            "get": {
+                "summary": "Endpoint for /get_all_professionals",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_service_professionals/<int:service_id>": {
+            "get": {
+                "summary": "Endpoint for /get_service_professionals/<int:service_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_professional/<int:professional_id>": {
+            "get": {
+                "summary": "Endpoint for /get_professional/<int:professional_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_user/<int:user_id>": {
+            "get": {
+                "summary": "Endpoint for /get_user/<int:user_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/add_service": {
+            "post": {
+                "summary": "Endpoint for /add_service",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_all_service_requests": {
+            "get": {
+                "summary": "Endpoint for /get_all_service_requests",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/user_professional_id/<int:user_id>": {
+            "get": {
+                "summary": "Endpoint for /user_professional_id/<int:user_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_service_request/<int:request_id>": {
+            "get": {
+                "summary": "Endpoint for /get_service_request/<int:request_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/professional_service_request/<int:professional_id>": {
+            "get": {
+                "summary": "Endpoint for /professional_service_request/<int:professional_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get_user_name/<int:user_id>": {
+            "get": {
+                "summary": "Endpoint for /get_user_name/<int:user_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/service-requests/<int:request_id>/accept": {
+            "post": {
+                "summary": "Endpoint for /service-requests/<int:request_id>/accept",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/service-requests/<int:request_id>/reject": {
+            "post": {
+                "summary": "Endpoint for /service-requests/<int:request_id>/reject",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/conclude-request/<int:request_id>": {
+            "post": {
+                "summary": "Endpoint for /conclude-request/<int:request_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/service-requests/<int:request_id>/finish": {
+            "post": {
+                "summary": "Endpoint for /service-requests/<int:request_id>/finish",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/service-requests/<int:request_id>/abandon": {
+            "post": {
+                "summary": "Endpoint for /service-requests/<int:request_id>/abandon",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/past-service-requests-customers": {
+            "get": {
+                "summary": "Endpoint for /past-service-requests-customers",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/create_service_request": {
+            "post": {
+                "summary": "Endpoint for /create_service_request",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/check_professional_pending/<int:professional_id>": {
+            "get": {
+                "summary": "Endpoint for /check_professional_pending/<int:professional_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/get-reviews/<int:professional_id>": {
+            "get": {
+                "summary": "Endpoint for /get-reviews/<int:professional_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/submit-review": {
+            "post": {
+                "summary": "Endpoint for /submit-review",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/professional_rating/<int:professional_id>": {
+            "get": {
+                "summary": "Endpoint for /professional_rating/<int:professional_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        },
+        "/block_user/<int:user_id>": {
+            "post": {
+                "summary": "Endpoint for /block_user/<int:user_id>",
+                "responses": {
+                    "200": {
+                        "description": "Success"
+                    }
+                }
+            }
+        }
+    }
+}

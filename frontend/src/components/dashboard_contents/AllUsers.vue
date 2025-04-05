@@ -1,6 +1,5 @@
 <template>
   <div class="all-users">
-    <h2>All Users</h2>
 
     <!-- Professionals Table -->
     <div class="table-section">
