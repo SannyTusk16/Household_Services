@@ -1,0 +1,42 @@
+# Ignore Python bytecode and caches
+__pycache__/
+*.py[cod]
+*.pyo
+
+# Ignore logs and compiled files
+*.log
+*.out
+
+# Ignore virtual environment in backend/
+backend/venv/
+
+# Ignore environment variable files (optional)
+.env
+.env.*
+
+# Ignore editor and OS files
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Ignore test coverage and profiling data
+.coverage
+*.prof
+coverage/
+
+# Ignore Flask's instance folder (if using)
+backend/instance/
+
+# Ignore PyInstaller build directories
+build/
+dist/
+*.spec
+
+# Ignore SQLite DBs (optional)
+*.sqlite3
+*.db
+
+# Ignore Jupyter Notebook checkpoints
+.ipynb_checkpoints/
+

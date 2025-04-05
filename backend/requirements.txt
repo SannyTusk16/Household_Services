@@ -1,0 +1,17 @@
+Flask
+Flask-Cors
+flask-sqlalchemy 
+datetime 
+flask-migrate 
+flask_jwt_extended
+flask-bcrypt
+requests
+flask-headers
+requests
+redis
+celery
+flask_mail
+flask_apscheduler
+flask_caching
+flasgger
+flask-swagger-ui
