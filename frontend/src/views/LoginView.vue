@@ -1,6 +1,10 @@
 <template>
   <div class="hello">
-    <h2>HouseHold Services App</h2>
+    <div class="titlediv">
+      <img src="../assets/logo.png" alt="Logo" class="logo" style="width: 200px; height: 200px;" />
+      <h1 class="title">HouseHold Services</h1>
+      <p class="subtitle">Your one-stop solution for all household needs</p>
+    </div>
     <div class="empty"></div>
     <div class="form-container">
       <UserLoginView v-if="currentView === 'login'" @switch-view="switchView" />
@@ -11,6 +15,7 @@
   <script>
   import UserLoginView from "@/components/UserLoginView.vue";
   import UserRegisterView from "@/components/UserRegisterView.vue";
+  import api from "@/api";
 
   export default {
     name: "LoginView",
@@ -20,7 +25,7 @@
     },
     data() {
       return {
-        currentView: "login", // Default view is 'login'
+        currentView: "login", 
       };
     },
     methods: {
@@ -36,18 +41,20 @@
 html, body {
   margin: 0;
   height: 100%;
+  
 }
 .hello {
+margin-left: 100px;
   display: flex;
   justify-content: space-around;
   align-items: center;
-  background-color: transparent;
+  background-color:transparent;
   min-height: 100vh;
   overflow: hidden;
 }
 
 .form-container {
-  background-color: #ffffff;
+  background-color: transparent;
   padding: 30px;
   border-radius: 8px;
   width: 100%;
@@ -55,10 +62,13 @@ html, body {
   text-align: center;
 }
 
-h2 {
+.titlediv {
   font-size: 2em;
   margin-bottom: 20px;
   color: #333;
+  top: 35%;
+  left: 25%;
+  position: absolute;
 }
 
 .input-group {

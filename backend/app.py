@@ -23,6 +23,7 @@ from celery import shared_task
 from flask_swagger_ui import get_swaggerui_blueprint
 from flask import send_from_directory    
 from datetime import datetime
+# flask run --cert=cert.pem --key=key.pem --debug
 
 SWAGGER_URL = "/swagger"
 API_URL = "/static/swagger.json"
@@ -33,13 +34,12 @@ API_URL = "/static/swagger.json"
 def allowed_file(filename):
     return "." in filename and filename.rsplit(".", 1)[1].lower() in ALLOWED_EXTENSIONS
 UPLOAD_FOLDER = 'uploads/documents'  # Define where files will be stored
-ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg',"docx"}  # Define allowed file extensions
+ALLOWED_EXTENSIONS = {'pdf', 'png', 'jpg', 'jpeg',"docx"}  
 
 access_token = None
 
 app = Flask(__name__)
-# api = Api(app, version='1.0', title='Household Services',  description='REST APIs')
-# ns = api.namespace('todos', description='TODO operations')
+
 
 app.config.from_object(Config)
 db.init_app(app)
@@ -134,7 +134,7 @@ def serve_vue(path):
         return send_from_directory("static", path)
     return send_from_directory("static", "index.html")
 
-@app.route("/send_mail_with_timestamp")
+@app.route("/api/send_mail_with_timestamp")
 def send_mail_with_timestamp():
     now = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # Format: YYYY-MM-DD HH:MM:SS
     msg = Message(
@@ -151,7 +151,7 @@ def send_mail_with_timestamp():
         return f"Error: {str(e)}"
 
 
-@app.route("/send_mail")
+@app.route("/api/send_mail")
 def send_mail():
     msg = Message(
         "Your Subject Here",
@@ -166,7 +166,7 @@ def send_mail():
     except Exception as e:
         return f"Error: {str(e)}"
 
-@app.route("/send_html_mail")
+@app.route("/api/send_html_mail")
 def send_html_mail():
     msg = Message(
         "Welcome Email",
@@ -182,7 +182,7 @@ def send_html_mail():
         return f"Error: {str(e)}"
 
 
-@app.route("/send_mail_attachment")
+@app.route("/api/send_mail_attachment")
 def send_mail_attachment():
     msg = Message(
         "Your Report",
@@ -205,7 +205,7 @@ def send_async_email(subject, recipient, body):
     msg.body = body
     mail.send(msg)
 
-@app.route("/send_async_mail")
+@app.route("/api/send_async_mail")
 def send_async_mail():
     send_async_email.delay("Async Email", "recipient@example.com", "This email was sent in the background!")
     return "Email is being sent in the background!"
@@ -300,7 +300,7 @@ def export_closed_requests(admin_email):
     return f"CSV export completed: {file_path}"
 
 
-@app.route("/export-closed-requests", methods=["POST"])
+@app.route("/api/export-closed-requests", methods=["POST"])
 def trigger_csv_export():
     """Trigger CSV export as an async Celery task."""
     data = request.get_json()
@@ -362,20 +362,41 @@ with app.app_context():
         db.session.add(review)
         db.session.commit()
 
-@app.route("/login", methods=['GET', 'POST'])
+@app.route("/api/login", methods=['GET', 'POST'])
 def landing():
     """Login"""
     global access_token
+    
     if request.method == 'GET':
         return jsonify({'message': 'Welcome to the home page'}), 200
     elif request.method == 'POST':
+
         if not request.is_json:
             return jsonify({'error': 'Unsupported Media Type, please use application/json'}), 415
         data = request.get_json()
-        user_id = data.get('user_id')
+        mail_id = data.get('mail_id')
         password = data.get('password')
+        verify_url = "https://www.google.com/recaptcha/api/siteverify"
+        payload = {
+            "secret": "6Lc1lAsrAAAAABgyTItogKWDu9TUatqKBlwGA6oT",
+            "response": data.get("recaptcha_token")
+        }
+        recaptcha_response = requests.post(verify_url, data=payload)
+        result = recaptcha_response.json()
 
-        user = Users.query.filter_by(user_id=user_id).first()
+        if not result.get("success"):
+            return jsonify({"error": "reCAPTCHA verification failed"}), 401
+
+        # Optional: For v3, check score
+        if "score" in result and result["score"] < 0.5:
+            return jsonify({"error": "reCAPTCHA score too low"}), 403
+        if request.method == 'GET':
+            return jsonify({'message': 'Welcome to the home page'}), 200
+        elif request.method == 'POST':
+            if not request.is_json:
+                return jsonify({'error': 'Unsupported Media Type, please use application/json'}), 415
+
+        user = Users.query.filter_by(email=mail_id).first()
         if user and bcrypt.check_password_hash(user.password, password):
             access_token = create_access_token(identity=str(user.user_id))
             return jsonify({'message': 'Login Success', 'access_token': access_token}), 200
@@ -383,7 +404,7 @@ def landing():
             return jsonify({'message': 'Login failed'}), 401
 
 
-@app.route("/register", methods=["POST"])
+@app.route("/api/register", methods=["POST"])
 def register():
     if request.content_type.startswith("multipart/form-data"):  # Handle file uploads
         form_data = request.form
@@ -500,7 +521,7 @@ def send_welcome_email(username, email, role):
 
 
 
-@app.route("/current_user", methods=["GET"])
+@app.route("/api/current_user", methods=["GET"])
 @jwt_required()
 def get_current_user():
     try:
@@ -522,7 +543,7 @@ def get_current_user():
         return jsonify({"message": str(e)}), 500
     
 
-@app.route("/upload_document", methods=["POST"])
+@app.route("/api/upload_document", methods=["POST"])
 def upload_document():
     if 'file' not in request.files or not request.form.get('professional_id'):
         return jsonify({"message": "File and professional_id are required"}), 400
@@ -549,7 +570,7 @@ def upload_document():
     return jsonify({"message": "File uploaded successfully", "document_id": new_document.document_id}), 201
 
     
-@app.route("/get_document/<int:document_id>", methods=["GET"])
+@app.route("/api/get_document/<int:document_id>", methods=["GET"])
 def get_document(document_id):
     document = Document.query.filter_by(document_id=document_id).first()
 
@@ -566,7 +587,7 @@ def get_document(document_id):
 
 
 
-@app.route("/download_document/<int:document_id>", methods=["GET"])
+@app.route("/api/download_document/<int:document_id>", methods=["GET"])
 def download_document(document_id):
     document = Document.query.filter_by(document_id=document_id).first()
 
@@ -581,7 +602,7 @@ def download_document(document_id):
         download_name=document.file_name
     )
 
-@app.route("/get_professional_documents/<int:professional_id>", methods=["GET"])
+@app.route("/api/get_professional_documents/<int:professional_id>", methods=["GET"])
 def get_professional_documents(professional_id):
     professional = Professional.query.filter_by(professional_id=professional_id).first()
 
@@ -605,7 +626,7 @@ def get_professional_documents(professional_id):
     return jsonify({"documents": documents_list}), 200
 
 
-@app.route("/get_all_customers", methods=["GET"])
+@app.route("/api/get_all_customers", methods=["GET"])
 @cache.cached(timeout=5)
 @jwt_required()
 def get_all_customers():
@@ -635,7 +656,7 @@ def get_all_customers():
 
 
 
-@app.route('/get_all_services', methods=['GET'])
+@app.route('/api/get_all_services', methods=['GET'])
 @cache.cached(timeout=5)
 def get_all_services():
     try:
@@ -654,7 +675,7 @@ def get_all_services():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route("/get_service/<int:service_id>", methods=["GET"])
+@app.route("/api/get_service/<int:service_id>", methods=["GET"])
 def get_service(service_id):
     service = Service.query.filter_by(service_id=service_id).first()
 
@@ -668,7 +689,7 @@ def get_service(service_id):
         "price": service.price
     }), 200
 
-@app.route("/create_service", methods=["POST"])
+@app.route("/api/create_service", methods=["POST"])
 def create_service():
     if not request.is_json:
         return jsonify({"message": "Unsupported Media Type, please use application/json"}), 415
@@ -690,7 +711,7 @@ def create_service():
 
     return jsonify({"message": "Service created successfully", "service_id": new_service.service_id}), 201
 
-@app.route("/get_all_professionals", methods=["GET"])
+@app.route("/api/get_all_professionals", methods=["GET"])
 @cache.cached(timeout=5)
 def get_all_professionals():
     professionals = Professional.query.all()
@@ -715,7 +736,7 @@ def get_all_professionals():
 
     return jsonify({"professionals": professionals_list}), 200
 
-@app.route("/get_service_professionals/<int:service_id>", methods=["GET"])
+@app.route("/api/get_service_professionals/<int:service_id>", methods=["GET"])
 def get_service_professionals(service_id):
     service = Service.query.filter_by(service_id=service_id).first()
 
@@ -758,7 +779,7 @@ def get_service_professionals(service_id):
     return jsonify({"professionals": professionals_list}), 200
 
 
-@app.route("/get_professional/<int:professional_id>", methods=["GET"])
+@app.route("/api/get_professional/<int:professional_id>", methods=["GET"])
 def get_professional(professional_id):
     professional = Professional.query.filter_by(professional_id=professional_id).first()
 
@@ -774,7 +795,7 @@ def get_professional(professional_id):
     }), 200
 
 
-@app.route("/get_user/<int:user_id>", methods=["GET"])
+@app.route("/api/get_user/<int:user_id>", methods=["GET"])
 def get_user(user_id):
     user = Users.query.get(user_id)
     if not user:
@@ -788,7 +809,7 @@ def get_user(user_id):
         "address": user.address
     })
 
-@app.route('/add_service', methods=['POST'])
+@app.route('/api/add_service', methods=['POST'])
 def add_service():
     data = request.json
     new_service = Service(
@@ -802,7 +823,7 @@ def add_service():
 
 
 
-@app.route('/get_all_service_requests', methods=['GET'])
+@app.route('/api/get_all_service_requests', methods=['GET'])
 @cache.cached(timeout=5)
 def get_all_service_requests():
     try:
@@ -825,7 +846,7 @@ def get_all_service_requests():
         return jsonify({"error": str(e)}), 500
     
 
-@app.route("/user_professional_id/<int:user_id>", methods=["GET"])
+@app.route("/api/user_professional_id/<int:user_id>", methods=["GET"])
 def get_user_professional_id(user_id):
     professional = Professional.query.filter_by(user_id=user_id).first()
     print(professional)
@@ -836,7 +857,7 @@ def get_user_professional_id(user_id):
     return jsonify({"professional_id": professional.professional_id}), 200
 
 
-@app.route("/get_service_request/<int:request_id>", methods=["GET"])
+@app.route("/api/get_service_request/<int:request_id>", methods=["GET"])
 @jwt_required()
 def get_service_request(request_id):
     request = Request.query.filter_by(request_id=request_id).first()
@@ -857,7 +878,7 @@ def get_service_request(request_id):
     }), 200
 
 
-@app.route("/professional_service_request/<int:professional_id>", methods=["GET"])
+@app.route("/api/professional_service_request/<int:professional_id>", methods=["GET"])
 @jwt_required()
 def get_professional_service_request(professional_id):
     requests = Request.query.filter_by(professional_id=professional_id).all()
@@ -882,7 +903,7 @@ def get_professional_service_request(professional_id):
     return jsonify({"requests": request_list}), 200
 
 
-@app.route("/get_user_name/<int:user_id>", methods=["GET"])
+@app.route("/api/get_user_name/<int:user_id>", methods=["GET"])
 @jwt_required()
 def get_user_name(user_id):
     user = Users.query.filter_by(user_id=user_id).first()
@@ -893,7 +914,7 @@ def get_user_name(user_id):
     return jsonify({"username": user.username}), 200
 
 
-@app.route('/service-requests/<int:request_id>/accept', methods=['POST'])
+@app.route('/api/service-requests/<int:request_id>/accept', methods=['POST'])
 @jwt_required()
 def accept_request(request_id):
     """Allows a professional to accept a service request"""
@@ -920,7 +941,7 @@ def accept_request(request_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/service-requests/<int:request_id>/reject', methods=['POST'])
+@app.route('/api/service-requests/<int:request_id>/reject', methods=['POST'])
 @jwt_required()
 def reject_request(request_id):
     """Allows a professional to reject a service request"""
@@ -946,7 +967,7 @@ def reject_request(request_id):
         return jsonify({"error": str(e)}), 500
 
 
-@app.route('/conclude-request/<int:request_id>', methods=['POST'])
+@app.route('/api/conclude-request/<int:request_id>', methods=['POST'])
 @jwt_required()
 def conclude_request(request_id):
     user_id = get_jwt_identity()
@@ -968,7 +989,7 @@ def conclude_request(request_id):
 
     return jsonify({"message": "Request has been concluded successfully!"})
 
-@app.route('/service-requests/<int:request_id>/finish', methods=['POST'])
+@app.route('/api/service-requests/<int:request_id>/finish', methods=['POST'])
 @jwt_required()
 def finish_request(request_id):
     """Allows a professional to finish a service request"""
@@ -997,7 +1018,7 @@ def finish_request(request_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/service-requests/<int:request_id>/abandon', methods=['POST'])
+@app.route('/api/service-requests/<int:request_id>/abandon', methods=['POST'])
 @jwt_required()
 def abandon_request(request_id):
     """Allows a professional to finish a service request"""
@@ -1022,7 +1043,7 @@ def abandon_request(request_id):
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/past-service-requests-customers', methods=['GET'])
+@app.route('/api/past-service-requests-customers', methods=['GET'])
 @cache.cached(timeout=5)
 @jwt_required()
 def get_past_service_requests_customers():
@@ -1054,7 +1075,7 @@ def get_past_service_requests_customers():
     except Exception as e:
         return jsonify({"error": str(e)}), 500
 
-@app.route('/create_service_request', methods=['POST'])
+@app.route('/api/create_service_request', methods=['POST'])
 def create_service_request():
     data = request.json
     professional_id = data.get("professional_id")
@@ -1104,7 +1125,7 @@ def create_service_request():
     return jsonify({"message": "Service request created successfully!"}), 201
 
 
-@app.route('/check_professional_pending/<int:professional_id>', methods=['GET'])
+@app.route('/api/check_professional_pending/<int:professional_id>', methods=['GET'])
 def check_professional_pending(professional_id):
     # Check if the professional has any pending request
     professional_has_pending = Request.query.filter_by(professional_id=professional_id, status="Pending").first()
@@ -1114,7 +1135,7 @@ def check_professional_pending(professional_id):
     }), 200
 
 
-@app.route("/get-reviews/<int:professional_id>", methods=["GET"])
+@app.route("/api/get-reviews/<int:professional_id>", methods=["GET"])
 @jwt_required()
 def get_reviews(professional_id):
     try:
@@ -1136,7 +1157,7 @@ def get_reviews(professional_id):
         return jsonify({"message": str(e)}), 500
 
 
-@app.route("/submit-review", methods=["POST"])
+@app.route("/api/submit-review", methods=["POST"])
 @jwt_required()
 def submit_review():
     print("Attempting to review")
@@ -1174,7 +1195,7 @@ def submit_review():
 
 
 
-@app.route('/professional_rating/<int:professional_id>', methods=['GET'])
+@app.route('/api/professional_rating/<int:professional_id>', methods=['GET'])
 @jwt_required()
 def get_professional_rating(professional_id):
     professional = Professional.query.get(professional_id)
@@ -1184,7 +1205,7 @@ def get_professional_rating(professional_id):
     rating = professional.rating  # Assuming the rating is stored in the database
     return jsonify({"rating": rating})
 
-@app.route("/block_user/<int:user_id>", methods=["POST"])
+@app.route("/api/block_user/<int:user_id>", methods=["POST"])
 def block_user(user_id):
 
     user = Users.query.get(user_id)

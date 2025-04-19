@@ -1,6 +1,5 @@
 <template>
-  <div class="hello">
-    <div class="empty"></div>
+  <div class="register-view">
     <div class="form-container">
       <h2>Register</h2>
       <form @submit.prevent="handleSubmit">
@@ -64,18 +63,35 @@
             </option>
           </select>
         </div>
-
         <button type="submit" class="register-btn">Register</button>
+        <div class="recaptcha-container">
+          <vue-recaptcha
+            ref="recaptcha"
+            sitekey="6Lc1lAsrAAAAAPz9TfqUGQMogpi-WDtOK7tVTjpX"
+            @verify="onCaptchaVerified"
+            @expired="onCaptchaExpired"
+          ></vue-recaptcha>
+        </div>
       </form>
+      <button class="login-btn" @click="$emit('switch-view', 'login')">
+      Login
+    </button>
     </div>
-    <div class="empty"></div>
+
+    
+    
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import api from "@/api";
+import VueRecaptcha from 'vue-recaptcha';
 
 export default {
+  components: {
+    'vue-recaptcha': VueRecaptcha,
+  },
   name: "UserRegisterView",
   data() {
     return {
@@ -88,14 +104,21 @@ export default {
         role: "C",
         resume: null,
         service_type: "",
+        recaptchaToken: null,
       },
       services: [], // Store services fetched from API
     };
   },
   methods: {
+    onCaptchaVerified(response) {
+      this.recaptchaToken = response;
+    },
+    onCaptchaExpired() {
+      this.recaptchaToken = null;
+    },
     async fetchServices() {
       try {
-        const response = await axios.get("http://127.0.0.1:5000/get_all_services");
+        const response = await axios.get("/api/get_all_services");
         this.services = response.data; // Store service list
       } catch (error) {
         console.error("Failed to fetch services:", error);
@@ -111,6 +134,10 @@ export default {
       }
     },
     async handleSubmit() {
+      if (!this.recaptchaToken) {
+        alert('Please complete the CAPTCHA.');
+        return;
+      }
       if (this.formData.role === "P" && !this.formData.resume) {
         alert("Please upload your resume.");
         return;
@@ -131,11 +158,12 @@ export default {
       }
 
       try {
-        const response = await axios.post("http://127.0.0.1:5000/register", formData);
+        const response = await axios.post("/api/register", formData);
 
         console.log("Response:", response.data);
         alert(response.data.message);
-        this.$router.push("/"); // Navigate to login page after registration
+
+        this.$emit("switch-view", "login");
       } catch (error) {
         console.error("Registration failed:", error);
         alert(error.response?.data?.message || "Registration failed.");
@@ -149,7 +177,7 @@ export default {
 </script>
 
 <style scoped>
-.hello {
+.register-view {
   display: flex;
   justify-content: space-around;
   align-items: center;
@@ -158,7 +186,7 @@ export default {
 }
 
 .form-container {
-  background-color: #ffffff;
+  background-color: transparent;
   padding: 30px;
   border-radius: 8px;
   width: 100%;
@@ -247,5 +275,20 @@ h2 {
 
 .register-btn:hover {
   background-color: #379f72;
+}
+.login-btn {
+  width: 100%;
+  padding: 12px;
+  font-size: 1.2em;
+  background-color: #46b942;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.login-btn:hover {
+  background-color: #379f48;
 }
 </style>

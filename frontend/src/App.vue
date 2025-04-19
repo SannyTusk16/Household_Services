@@ -18,6 +18,8 @@
   color: #2c3e50;
   height: 100vh;
   overflow: hidden;
+  border: 0;
+  background-color: rgb(207, 231, 222);
 }
 
 .navigation-bar {
@@ -48,7 +50,16 @@ nav a.router-link-exact-active {
 }
 </style>
 <script>
+import api from "@/api";
 export default {
   name: "App",
 };
 </script>
+<style>
+html, body {
+  margin: 0;
+  padding: 0;
+  height: 100%;
+  box-sizing: border-box;
+}
+</style>

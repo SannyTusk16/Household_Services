@@ -39,6 +39,7 @@
 <script>
 import axios from "axios";
 import _ from "lodash"; // Import lodash for debouncing
+import api from "@/api";
 
 export default {
   name: "SearchProfessionals",
@@ -55,7 +56,7 @@ export default {
       try {
         const service_id = localStorage.getItem("service_id");
         const response = await axios.get(
-          `http://127.0.0.1:5000/get_service_professionals/${service_id}`
+          `/api/get_service_professionals/${service_id}`
         );
         console.log("API Response:", JSON.stringify(response.data, null, 2));
 

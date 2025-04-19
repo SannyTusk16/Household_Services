@@ -1,9 +1,9 @@
 <template>
   <div class="login-container">
-    <h3>Login</h3>
+    <h2>Login</h2>
     <div class="input-group">
-      <label for="user_id">User ID</label>
-      <input v-model="user_id" type="text" id="user_id" required />
+      <label for="mail_id">Mail ID</label>
+      <input v-model="mail_id" type="text" id="mail_id" required />
     </div>
 
     <div class="input-group">
@@ -12,45 +12,67 @@
     </div>
 
     <button @click="login" class="login-btn">Login</button>
-    <router-link to="/register">
-      <button class="register-btn">Register</button>
-    </router-link>
+    <button class="register-btn" @click="$emit('switch-view', 'register')">
+      Register
+    </button>
+
+    <div class="recaptcha-container">
+      <vue-recaptcha
+        ref="recaptcha"
+        sitekey="6Lc1lAsrAAAAAPz9TfqUGQMogpi-WDtOK7tVTjpX"
+        @verify="onCaptchaVerified"
+        @expired="onCaptchaExpired"
+      ></vue-recaptcha>
+    </div>
   </div>
 </template>
 
 <script>
-import axios from "axios";
+import VueRecaptcha from 'vue-recaptcha';
+import axios from 'axios';
 
 export default {
+  components: {
+    'vue-recaptcha': VueRecaptcha,
+  },
   data() {
     return {
-      user_id: "",
-      password: "",
+      mail_id: "",
+      password: '',
+      recaptchaToken: null,
     };
   },
   methods: {
-  async login() {
-    try {
-      const response = await axios.post("http://127.0.0.1:5000/login", {
-        user_id: this.user_id,
-        password: this.password,
-      });
-
-      if (response.data.access_token) {
-        const token = response.data.access_token;
-
-        // ✅ Store token in local storage
-        localStorage.setItem("token", token);
-
-        alert("Login successful!");
-        console.log("Access Token:", token);
-
-        // ✅ Redirect to home page
-        this.$router.push("/home");
+    onCaptchaVerified(response) {
+      this.recaptchaToken = response;
+    },
+    onCaptchaExpired() {
+      this.recaptchaToken = null;
+    },
+    async login() {
+      if (!this.recaptchaToken) {
+        alert('Please complete the CAPTCHA.');
+        return;
       }
-    } catch (error) {
-      console.error("Login Error:", error);
-      alert("Invalid credentials. Please try again.");
+
+      try {
+        const response = await axios.post('/api/login', {
+          mail_id: this.mail_id,
+          password: this.password,
+          recaptcha_token: this.recaptchaToken,
+        });
+
+        if (response.data.access_token) {
+          const token = response.data.access_token;
+          localStorage.setItem('token', token);
+          alert('Login successful!');
+          this.$router.push('/home');
+        }
+      } catch (error) {
+        console.error('Login Error:', error);
+        alert('Invalid credentials or failed CAPTCHA. Please try again.');
+        this.$refs.recaptcha.reset();
+        this.recaptchaToken = null;
       }
     },
   },
@@ -59,6 +81,10 @@ export default {
 
 
 <style scoped>
+html, body {
+  margin: 0;
+  height: 100%;
+}
 .hello {
   display: flex;
   justify-content: space-around;
@@ -68,7 +94,7 @@ export default {
 }
 
 .form-container {
-  background-color: #ffffff;
+  background-color: transparent;
   padding: 30px;
   border-radius: 8px;
   width: 100%;
@@ -143,4 +169,10 @@ h2 {
 .empty {
   flex: 1;
 }
+.recaptcha-container {
+  margin-top: 20px;
+  display: flex;
+  justify-content: center;
+}
+
 </style>

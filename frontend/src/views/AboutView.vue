@@ -20,6 +20,7 @@
   import axios from "axios";
   import SearchProfessional from "@/components/SearchProfessional.vue";
   import ProfessionalsByService from "@/components/ProfessionalsByService.vue";
+  import api from "@/api";
   
   export default {
     components: {
@@ -45,7 +46,7 @@
         try {
           const token = localStorage.getItem("token");
           const user_id = localStorage.getItem("user_id");
-          const response = await axios.get(`http://127.0.0.1:5000/get_user_name/${user_id}`, {
+          const response = await axios.get(`/api/get_user_name/${user_id}`, {
             headers: {
               Authorization: `Bearer ${token}`,
             },
@@ -59,7 +60,7 @@
       async getServiceDetails() {
         try {
           const service_id = localStorage.getItem("service_id");
-          const response = await axios.get(`http://127.0.0.1:5000/get_service/${service_id}`);
+          const response = await axios.get(`/api/get_service/${service_id}`);
           console.log("Fetched Service Details from API:", JSON.stringify(response.data));
           this.service_name = response.data.service_name;
           this.service_description = response.data.service_description;
@@ -86,7 +87,7 @@
         }
   
         try {
-          const response = await axios.get("http://127.0.0.1:5000/current_user", {
+          const response = await axios.get("/api/current_user", {
             headers: { Authorization: `Bearer ${token}` },
           });
           localStorage.setItem("user_id", response.data.user_id);

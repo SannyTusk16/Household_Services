@@ -21,8 +21,9 @@
 </template>
 
 <script>
-import AllUsers from "./dashboard_contents/AllUsers.vue";
-import AllServices from "./dashboard_contents/AllServices.vue";
+import AllUsers from "./AllUsers.vue";
+import AllServices from "./AllServices.vue";
+import api from "@/api";
 
 export default {
   name: "AdminDashboard",
@@ -76,7 +77,6 @@ h2 {
   max-height: 400px; /* Prevents overflow */
   overflow-y: auto;
   padding: 10px;
-  border-top: 2px solid #ddd;
 }
 
 @media (max-width: 768px) {

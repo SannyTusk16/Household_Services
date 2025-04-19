@@ -37,6 +37,7 @@
 
 <script>
 import axios from "axios";
+import api from "@/api";
 
 export default {
   name: "ProfessionalsByService",
@@ -55,7 +56,7 @@ export default {
     async fetchServiceDetails() {
       try {
         const service_id = localStorage.getItem("service_id");
-        const response = await axios.get(`http://127.0.0.1:5000/get_service/${service_id}`);
+        const response = await axios.get(`/api/get_service/${service_id}`);
         this.service_name = response.data.service_name;
       } catch (error) {
         console.error("Error fetching service details:", error);
@@ -64,7 +65,7 @@ export default {
     async fetchProfessionals() {
       try {
         const service_id = localStorage.getItem("service_id");
-        const response = await axios.get(`http://127.0.0.1:5000/get_service_professionals/${service_id}`);
+        const response = await axios.get(`/api/get_service_professionals/${service_id}`);
 
         console.log("API Response:", response.data);  // Debugging
 

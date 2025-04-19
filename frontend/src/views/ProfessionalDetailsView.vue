@@ -60,6 +60,7 @@
 
 <script>
 import axios from "axios";
+import api from "@/api";
 
 export default {
   name: "ProfessionalDetails",
@@ -100,7 +101,7 @@ export default {
     async checkProfessionalPending() {
       try {
         const professional_id = this.$route.query.id || localStorage.getItem("professional_id");
-        const response = await axios.get(`http://127.0.0.1:5000/check_professional_pending/${professional_id}`);
+        const response = await axios.get(`/api/check_professional_pending/${professional_id}`);
         const { professional_has_pending } = response.data;
         this.disableRequestButton = professional_has_pending;
       } catch (error) {
@@ -126,7 +127,7 @@ export default {
           return;
         }
 
-        const response = await axios.post("http://127.0.0.1:5000/create_service_request", {
+        const response = await axios.post("/api/create_service_request", {
           professional_id,
           user_id,
           service_type: this.professional.service_type,
@@ -150,10 +151,10 @@ export default {
           return;
         }
 
-        const profResponse = await axios.get(`http://127.0.0.1:5000/get_professional/${professional_id}`);
+        const profResponse = await axios.get(`/api/get_professional/${professional_id}`);
         const professionalData = profResponse.data;
 
-        const userResponse = await axios.get(`http://127.0.0.1:5000/get_user/${professionalData.user_id}`);
+        const userResponse = await axios.get(`/api/get_user/${professionalData.user_id}`);
         const userData = userResponse.data;
 
         this.professional = {
@@ -172,7 +173,7 @@ export default {
     async fetchServiceRequests() {
       try {
         const professional_id = this.$route.query.id || localStorage.getItem("professional_id");
-        const response = await axios.get(`http://127.0.0.1:5000/professional_service_request/${professional_id}`, {
+        const response = await axios.get(`/api/professional_service_request/${professional_id}`, {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("token")}`,
           },
@@ -186,7 +187,7 @@ export default {
           try { 
             console.log("Fetching customer name for ID", request.user_id);
             user_id = request.user_id;
-            const customerResponse = await axios.get(`http://127.0.0.1:5000/get_user/${user_id}`);
+            const customerResponse = await axios.get(`/api/get_user/${user_id}`);
             request.customer_name = customerResponse.data.name;
           } catch (error) {
             console.error(`Error fetching customer name for ID ${request.customer_id}:`, error);

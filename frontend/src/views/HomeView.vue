@@ -18,11 +18,12 @@
 
 <script>
 import axios from "axios";
-import ServiceRequests from "@/components/dashboard_contents/ProfessionalServiceRequests.vue";
-import SearchServices from "@/components/dashboard_contents/SearchServices.vue";
-import DashboardBlueprint from "@/components/dashboard_contents/DashboardBlueprint.vue";
-import HelloWorld from "@/components/HelloWorld.vue";
-import PrevServiceRequests from "@/components/dashboard_contents/PrevServiceRequests.vue";
+import ServiceRequests from "@/components/dashboard_contents/professional/ProfessionalServiceRequests.vue";
+import SearchServices from "@/components/dashboard_contents/customer/SearchServices.vue";
+import DashboardBlueprint from "@/components/dashboard_contents/customer/DashboardBlueprint.vue";
+import HelloWorld from "@/components/dashboard_contents/admin/HelloWorld.vue";
+import PrevServiceRequests from "@/components/dashboard_contents/customer/PrevServiceRequests.vue";
+import api from "@/api";
 
 export default {
   components: {
@@ -54,7 +55,7 @@ export default {
           return;
         }
 
-        const response = await axios.get(`http://127.0.0.1:5000/get_user_name/${user_id}`, {
+        const response = await axios.get(`/api/get_user_name/${user_id}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
@@ -86,7 +87,7 @@ export default {
       }
 
       try {
-        const response = await axios.get("http://127.0.0.1:5000/current_user", {
+        const response = await axios.get("/api/current_user", {
           headers: { Authorization: `Bearer ${token}` },
         });
 

@@ -19,6 +19,7 @@
   
   <script>
   import axios from "axios";
+  import api from "@/api";
   
   export default {
     name: "AllProfessionals",
@@ -33,7 +34,7 @@
     methods: {
       async fetchProfessionals() {
         try {
-          const response = await axios.get("http://127.0.0.1:5000/get_all_professionals");
+          const response = await axios.get("/api/get_all_professionals");
           console.log("API Response:", response.data);
 
           if (Array.isArray(response.data)) {
